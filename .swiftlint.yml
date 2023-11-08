@@ -1,4 +1,0 @@
-disabled_rules:
-  - identifier_name
-  - todo
-  - force_cast

@@ -1,24 +1,19 @@
 {
-  "extends": "@admob-plus-internal/tsconfig",
+  "extends": "cordova-plus/plugin",
   "compilerOptions": {
+    "outDir": "www",
+    "rootDir": "src/www",
+    "outFile": "www/admob.js",
+    "module": "amd",
+
     "esModuleInterop": true,
-    "resolveJsonModule": true,
-    "module": "Node16"
+    "skipLibCheck": true,
+    "strict": true,
+    "noImplicitAny": false,
+    "target": "es5",
+    "lib": ["dom", "es2015"],
+    "moduleResolution": "node"
   },
-  "references": [
-    { "path": "packages/pkg-proxy" },
-    { "path": "internal/cli" },
-    { "path": "internal/npm-bin" },
-    { "path": "packages/capacitor" },
-    { "path": "packages/cordova-consent" },
-    { "path": "packages/cordova-native" },
-    { "path": "packages/cordova" },
-    { "path": "packages/ionic" },
-    { "path": "packages/react-native" }
-  ],
-  "files": [],
-  "ts-node": {
-    "esm": true,
-    "transpileOnly": true
-  }
+
+  "include": ["./src/www/cordova.d.ts", "./src/www/**/*"]
 }
