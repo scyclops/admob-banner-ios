@@ -69,37 +69,32 @@ class AMBPlugin: CDVPlugin {
         let ctx = AMBContext(command)
 
         DispatchQueue.main.async {
-            if let adClass = ctx.optString("cls") {
+            var ad: AMBCoreAd? = ctx.optAd()
+            // i think the root of the problem is that data on the javascript side is getting cleared
+            // and the javascript erroneously assumes it's data is valid
+            // so it re-runs adCreate/adLoad/adShow when it really doesn't need to do anything
+            // and we can't fix the javascript side if the javascript data can't be trusted
+            // but making adCreate/adLoad/adShow do nothing when the ad already exists should also work 
+            //
+            // reference: https://github.com/admob-plus/admob-plus/issues/450#issuecomment-967061492
+            // 
+            // but if reusing the ad doesn't work, try the below to recreate it
+            // (making sure to uncomment both cleanup definition)
+            /*
+            if let oldAd = ctx.optAd() as? AMBAdBase {
+                oldAd.cleanup()
+            }
+            ad = AMBBanner(ctx)
+            */
 
-                var ad: AMBCoreAd? = ctx.optAd()
-                // i think the root of the problem is that data on the javascript side is getting cleared
-                // and the javascript erroneously assumes it's data is valid
-                // so it re-runs adCreate/adLoad/adShow when it really doesn't need to do anything
-                // and we can't fix the javascript side if the javascript data can't be trusted
-                // but making adCreate/adLoad/adShow do nothing when the ad already exists should also work 
-                //
-                // reference: https://github.com/admob-plus/admob-plus/issues/450#issuecomment-967061492
-                // 
-                // but if reusing the ad doesn't work, try the below to recreate it
-                // (making sure to uncomment both cleanup definition)
-                /*
-                if let oldAd = ctx.optAd() as? AMBAdBase {
-                    oldAd.cleanup()
-                }
+            if ad == nil {
                 ad = AMBBanner(ctx)
-                */
+            }
 
-                if ad == nil {
-                    ad = AMBBanner(ctx)
-                }
-
-                if ad != nil {
-                    ctx.resolve()
-                } else {
-                    ctx.reject("fail to create ad: \(ctx.optId() ?? "-")")
-                }
+            if ad != nil {
+                ctx.resolve()
             } else {
-                ctx.reject()
+                ctx.reject("fail to create ad: \(ctx.optId() ?? "-")")
             }
         }
     }
