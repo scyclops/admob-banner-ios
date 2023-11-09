@@ -45,12 +45,20 @@ class AMBBanner: AMBAdBase, GADBannerViewDelegate, GADAdSizeDelegate {
 
     static var rootObservation: NSKeyValueObservation?
 
+    static var barViewConstraint: NSLayoutConstraint?
+    static var showConstraints: [NSLayoutConstraint] = []
+
     static var rootView: UIView {
         return AMBContext.plugin.viewController.view!
     }
 
     static var mainView: UIView {
         return AMBContext.plugin.webView
+    }
+
+    static var statusBarBackgroundView: UIView? {
+        let statusBarFrame = UIApplication.shared.statusBarFrame
+        return rootView.subviews.first(where: { $0.frame.equalTo(statusBarFrame) })
     }
 
     static func config(_ ctx: AMBContext) {
@@ -61,6 +69,10 @@ class AMBBanner: AMBAdBase, GADBannerViewDelegate, GADAdSizeDelegate {
     }
 
     private static func prepareStackView() {
+
+        if stackView.initialized {
+            return
+        }
 
         var constraints: [NSLayoutConstraint] = []
 
@@ -97,6 +109,16 @@ class AMBBanner: AMBAdBase, GADBannerViewDelegate, GADAdSizeDelegate {
 
     private static func updateLayout() {
         if rootView.subviews.contains(stackView) {
+
+            if (barViewConstraint != nil) {
+                barViewConstraint!.isActive = false
+            }
+
+            if let barView = Self.statusBarBackgroundView,
+                !barView.isHidden {
+                barViewConstraint = stackView.topAnchor.constraint(equalTo: barView.bottomAnchor, constant: 0)
+                barViewConstraint!.isActive = true
+            }
             AMBBannerStackView.bottomConstraint.isActive = stackView.hasBottomBanner
         }
     }
@@ -152,19 +174,25 @@ class AMBBanner: AMBAdBase, GADBannerViewDelegate, GADAdSizeDelegate {
     }
 
     override func show(_ ctx: AMBContext) {
-        if !Self.stackView.initialized {
-            Self.prepareStackView()
-            Self.stackView.addArrangedSubview(placeholder)
-            Self.rootView.addSubview(bannerView)
+        Self.prepareStackView()
+        Self.stackView.addArrangedSubview(placeholder)
+        Self.rootView.addSubview(bannerView)
 
-            bannerView.translatesAutoresizingMaskIntoConstraints = false
-            NSLayoutConstraint.activate([
-                placeholder.heightAnchor.constraint(equalTo: bannerView.heightAnchor),
-                bannerView.centerXAnchor.constraint(equalTo: placeholder.centerXAnchor),
-                bannerView.topAnchor.constraint(equalTo: placeholder.topAnchor),
-                bannerView.widthAnchor.constraint(equalTo: placeholder.widthAnchor)
-            ])
+        bannerView.translatesAutoresizingMaskIntoConstraints = false
+
+        // disable the old constraints (if any)
+        for constraint in AMBBanner.showConstraints {
+            constraint.isActive = false
         }
+
+        // create new constraints
+        AMBBanner.showConstraints = [
+            placeholder.heightAnchor.constraint(equalTo: bannerView.heightAnchor),
+            bannerView.centerXAnchor.constraint(equalTo: placeholder.centerXAnchor),
+            bannerView.topAnchor.constraint(equalTo: placeholder.topAnchor),
+            bannerView.widthAnchor.constraint(equalTo: placeholder.widthAnchor)
+        ]
+        NSLayoutConstraint.activate(AMBBanner.showConstraints)
 
         if bannerView.isHidden {
             bannerView.isHidden = false
