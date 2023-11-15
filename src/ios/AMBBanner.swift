@@ -39,6 +39,7 @@ class AMBBannerStackView: UIStackView {
 class AMBBanner: AMBAdBase, GADBannerViewDelegate, GADAdSizeDelegate {
     static let stackView = AMBBannerStackView.shared
 
+    static let priority999 = UILayoutPriority(999)
     static let priority10 = UILayoutPriority(10)
     static let priority9 = UILayoutPriority(9)
     // using different priority to try to prevent constraint error crashes
@@ -117,8 +118,27 @@ class AMBBanner: AMBAdBase, GADBannerViewDelegate, GADAdSizeDelegate {
             if let barView = Self.statusBarBackgroundView,
                 !barView.isHidden {
                 barViewConstraint = stackView.topAnchor.constraint(equalTo: barView.bottomAnchor, constant: 0)
+                barViewConstraint!.priority = priority999
                 barViewConstraint!.isActive = true
             }
+
+            // the isActive line below is still causing crashes on iOS
+            // stack trace AMBPlugin.adShow() -> ad.show() -> updateLayout()
+            // CoreAutoLayout -[NSLayoutConstraint _setActive:mutuallyExclusiveConstraints:]
+            //
+            // a constraint error does show up in XCode logs in development when keyboard shows/hides
+            // but it happens even when ads aren't shown so it's not the same error crashing in production
+            // (but there may still be a connection to keyboard showing/hiding)
+            //
+            // the error may be related to bottomAnchor having 2 different constraints on it
+            // that may not be able to be satisfied in some cases
+            // and with the our latest changes to add priorities < 1000 to both these constraints
+            // i think the crash should be prevented in the next update
+            // b/c priorities < 1000 are considered optional
+            //
+            // but if the new priorities don't fix it, we could try removing constraints one at a time
+            // to test what minimum constraints still work and hope we don't break anything else
+            AMBBannerStackView.bottomConstraint.priority = priority999
             AMBBannerStackView.bottomConstraint.isActive = stackView.hasBottomBanner
         }
     }
