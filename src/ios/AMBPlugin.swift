@@ -17,7 +17,7 @@ class AMBPlugin: CDVPlugin {
 
         if let x = self.commandDelegate.settings["disableSDKCrashReporting".lowercased()] as? String,
            x == "true" {
-            GADMobileAds.sharedInstance().disableSDKCrashReporting()
+            MobileAds.shared.disableSDKCrashReporting()
         }
     }
 
@@ -41,8 +41,8 @@ class AMBPlugin: CDVPlugin {
 
     @objc func start(_ command: CDVInvokedUrlCommand) {
         let ctx = AMBContext(command)
-        GADMobileAds.sharedInstance().start(completionHandler: { _ in
-            ctx.resolve(["version": GADGetStringFromVersionNumber(GADMobileAds.sharedInstance().versionNumber)])
+        MobileAds.shared.start(completionHandler: { _ in
+            ctx.resolve(["version": string(for: MobileAds.shared.versionNumber)])
         })
     }
 
