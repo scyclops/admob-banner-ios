@@ -76,6 +76,10 @@ class AMBContext: AMBCoreContext {
         return opts?.value(forKey: key)
     }
 
+    func optOffset() -> CGFloat? {
+        return opt("offset") as? CGFloat
+    }
+
     func optBackgroundColor() -> UIColor? {
         if let bgColor = opt("backgroundColor") as? NSDictionary,
            let r = bgColor["r"] as? CGFloat,
@@ -140,7 +144,27 @@ class AMBContext: AMBCoreContext {
     }
     // swiftlint:enable cyclomatic_complexity
 
-    func sendResult(_ message: CDVPluginResult?) {
+    func optGADServerSideVerificationOptions() -> GADServerSideVerificationOptions? {
+        guard let ssv = opt("serverSideVerification") as? NSDictionary
+        else {
+            return nil
+        }
+
+        let options = GADServerSideVerificationOptions.init()
+        if let customData = ssv.value(forKey: "customData") as? String {
+            options.customRewardString = customData
+        }
+        if let userId = ssv.value(forKey: "userId") as? String {
+            options.userIdentifier = userId
+        }
+        return options
+    }
+
+    func optWebviewGoto() -> String {
+        return command.argument(at: 0) as! String
+    }
+
+    func sendResult(_ message: CDVPluginResult) {
         self.commandDelegate.send(message, callbackId: command.callbackId)
     }
 }

@@ -69,8 +69,20 @@ extension AMBCoreContext {
         return nil
     }
 
+    func optAppMuted() -> Bool? {
+        return optBool("appMuted")
+    }
+
+    func optAppVolume() -> Float? {
+        return optFloat("appVolume")
+    }
+
     func optId() -> String? {
         return optString("id")
+    }
+
+    func optPosition() -> String {
+        return optString("position", "bottom")
     }
 
     func optAdUnitID() -> String? {
@@ -155,21 +167,32 @@ extension AMBCoreContext {
     }
 
     func configure() {
+        if let muted = optAppMuted() {
+            GADMobileAds.sharedInstance().applicationMuted = muted
+        }
+        if let volume = optAppVolume() {
+            GADMobileAds.sharedInstance().applicationVolume = volume
+        }
+
         let requestConfiguration = GADMobileAds.sharedInstance().requestConfiguration
         if let maxAdContentRating = optMaxAdContentRating() {
             requestConfiguration.maxAdContentRating = maxAdContentRating
         }
         if let tag = optChildDirectedTreatmentTag() {
-            requestConfiguration.tag(forChildDirectedTreatment: tag)
+            requestConfiguration.tagForChildDirectedTreatment = NSNumber(value: tag)
         }
         if let tag = optUnderAgeOfConsentTag() {
-            requestConfiguration.tagForUnderAge(ofConsent: tag)
+            requestConfiguration.tagForUnderAgeOfConsent = NSNumber(value: tag)
         }
         if let testDevices = optTestDeviceIds() {
             requestConfiguration.testDeviceIdentifiers = testDevices
         }
         if let sameAppKey = optBool("sameAppKey") {
-            requestConfiguration.setSameAppKeyEnabled(sameAppKey)
+            requestConfiguration.setPublisherFirstPartyIDEnabled(sameAppKey)
+        }
+        if let
+        publisherFirstPartyIDEnabled = optBool("publisherFirstPartyIDEnabled") {
+            requestConfiguration.setPublisherFirstPartyIDEnabled(publisherFirstPartyIDEnabled)
         }
 
         resolve()

@@ -23,14 +23,6 @@ class AMBAdBase: AMBCoreAd {
         #endif
     }
 
-    /*
-    func cleanup() {
-        #if targetEnvironment(simulator)
-        fatalError(AMBCoreError.notImplemented.localizedDescription)
-        #endif
-    }
-    */
-
     func hide(_ ctx: AMBContext) {
         ctx.reject(AMBCoreError.notImplemented)
         #if targetEnvironment(simulator)
@@ -64,5 +56,4 @@ class AMBAdBase: AMBCoreAd {
         d.merge(data) { (current, _) in current }
         plugin.emit(eventName, data: d)
     }
-
 }

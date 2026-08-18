@@ -36,32 +36,13 @@ class AMBPlugin: CDVPlugin {
 
     @objc func configRequest(_ command: CDVInvokedUrlCommand) {
         let ctx = AMBContext(command)
-        let requestConfiguration = GADMobileAds.sharedInstance().requestConfiguration
-
-        if let maxAdContentRating = ctx.optMaxAdContentRating() {
-            requestConfiguration.maxAdContentRating = maxAdContentRating
-        }
-
-        if let tag = ctx.optChildDirectedTreatmentTag() {
-            requestConfiguration.tag(forChildDirectedTreatment: tag)
-        }
-
-        if let tag = ctx.optUnderAgeOfConsentTag() {
-            requestConfiguration.tagForUnderAge(ofConsent: tag)
-        }
-
-        if let testDevices = ctx.optTestDeviceIds() {
-            requestConfiguration.testDeviceIdentifiers = testDevices
-        }
-
-        ctx.resolve()
+        ctx.configure()
     }
 
     @objc func start(_ command: CDVInvokedUrlCommand) {
         let ctx = AMBContext(command)
-
         GADMobileAds.sharedInstance().start(completionHandler: { _ in
-            ctx.resolve(["version": GADMobileAds.sharedInstance().sdkVersion])
+            ctx.resolve(["version": GADGetStringFromVersionNumber(GADMobileAds.sharedInstance().versionNumber)])
         })
     }
 
@@ -154,7 +135,7 @@ class AMBPlugin: CDVPlugin {
 
     func emit(_ eventName: String, data: Any = NSNull()) {
         let result = CDVPluginResult(status: CDVCommandStatus_OK, messageAs: ["type": eventName, "data": data])
-        result?.setKeepCallbackAs(true)
+        result.setKeepCallbackAs(true)
         self.commandDelegate.send(result, callbackId: readyCallbackId)
     }
 
